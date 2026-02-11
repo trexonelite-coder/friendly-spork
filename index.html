@@ -327,43 +327,33 @@ const AI_Agent = {
     
    
     async chat(message) {
-    try {
-        const response = await fetch(`${API.baseUrl}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message }) // Your server handles the key
-        });
-        
-        const data = await response.json();
-        console.log("AI Data Received:", data); // This helps you see what's happening
+            try {
+                const response = await fetch(`${API.baseUrl}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+                
+                const data = await response.json();
+                
+                // --- THE CRITICAL FIX ---
+                // If your server sends { "reply": "..." }
+                if (data.reply) return data.reply;
+                
+                // If your server sends { "choices": [...] }
+                if (data.choices && data.choices[0]) return data.choices[0].message.content;
+                
+                // If it's just a string
+                if (typeof data === 'string') return data;
 
-        // FIX: Check if the response is direct text or a choices object
-        if (data.reply) {
-            return data.reply; 
-        } else if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content;
-        }
-        
-        return data; // Fallback to raw data
-    } catch (err) {
-        console.error("AI Error", err);
-        return "Oops! My brain froze. Check the console!";
-    }
-}
-            
-            const data = await response.json();
-            
-            // Extract the text from the response
-            if (data.choices && data.choices[0]) {
-                return data.choices[0].message.content;
+                return "I received data, but I can't read it. Check the console!";
+            } catch (err) {
+                console.error("AI Error", err);
+                return "Oops! My brain froze. Is the server running? 🥶";
             }
-            throw new Error("Invalid response format");
-        } catch (err) {
-            console.error("AI Error", err);
-            return "Oops! My brain froze. Check your server console! 🥶";
         }
-    }
-};
 
         // Mapping old DB calls to new API calls for compatibility
         const DB = {
@@ -1527,5 +1517,6 @@ window.toggleDarkMode = function() {
     </script>
 </body>
 </html>
+
 
 
