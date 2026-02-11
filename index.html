@@ -81,9 +81,96 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
+#season-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    z-index: 999999 !important;
+    overflow: hidden !important;
+}
+
+.snow-flake {
+    position: absolute;
+    background: rgb(96, 157, 187) !important;
+    border-radius: 50%;
+    top: -20px; /* Starts above the screen */
+    box-shadow: 0 0 10px white;
+    animation: fall-snow linear infinite;
+}
+
+.rain-drop {
+    position: absolute;
+    background: rgba(255,255,255,0.6) !important;
+    width: 2px;
+    height: 60px;
+    top: -80px; /* Starts way above the screen */
+    animation: fall-rain linear infinite;
+}
+
+@keyframes fall-snow {
+    0% { transform: translateY(0) translateX(0); }
+    100% { transform: translateY(110vh) translateX(20px); }
+}
+
+@keyframes fall-rain {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(110vh); }
+}
+/* --- FULL MIDNIGHT VIBE --- */
+body.dark-mode {
+    background-color: #020617 !important; /* Deepest Navy Black */
+    color: #f8fafc !important;
+    transition: background-color 0.5s ease;
+}
+
+/* Make the whole app container blend into the dark */
+body.dark-mode #app {
+    background-color: transparent !important;
+}
+
+/* Darken all containers/cards */
+body.dark-mode .bg-white, 
+body.dark-mode .bg-slate-50, 
+body.dark-mode .shadow-sm {
+    background-color: #0f172a !important; /* Midnight Blue Card */
+    color: #f1f5f9 !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ACCURATE TYPING FIX: Dark boxes with White letters */
+body.dark-mode input, 
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: #1e293b !important; 
+    color: #ffffff !important; /* Crisp white text for typing */
+    border: 1px solid #334155 !important;
+}
+
+/* Glow for the Weather */
+body.dark-mode .rain-drop {
+    background: linear-gradient(to bottom, transparent, #3b82f6) !important;
+    box-shadow: 0 0 8px #3b82f6;
+    width: 1.5px;
+}
+
+body.dark-mode .snow-flake {
+    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.4);
+}
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
+    <div id="season-overlay"></div>
+<audio id="rain-sound" src="https://upload.wikimedia.org/wikipedia/commons/3/36/Rain_on_roof_loop.ogg" loop></audio>
+
+<div id="app"></div>
+
+<div id="vibe-menu" style="position: fixed; bottom: 20px; left: 20px; z-index: 999999; display: flex; gap: 10px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); padding: 10px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2);">
+    <button onclick="setEffect('winter')" style="cursor:pointer; font-size: 20px;">❄️</button>
+    <button onclick="setEffect('rain')" style="cursor:pointer; font-size: 20px;">🌧️</button>
+    <button onclick="toggleDarkMode()" id="dark-toggle" style="cursor:pointer; font-size: 20px;">🌙</button>
+    <button onclick="setEffect('clear')" style="cursor:pointer; font-size: 20px;">🧹</button>
+</div>
 
     <!-- Notification Toast -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-x-full opacity-0 bg-white border-l-4 p-4 rounded shadow-lg flex items-center gap-3 max-w-sm">
@@ -129,7 +216,7 @@
     <script>
         // --- API CLIENT (Connects to Node.js Server) ---
         const API = {
-            baseUrl: 'https://virtue-waterproof-allows-economy.trycloudflare.com/api',
+            baseUrl: 'https://planned-convergence-surrounded-look.trycloudflare.com/api',
 
             // Helper to get image URLs correct
             getImageUrl(path) {
@@ -234,35 +321,35 @@
         };
 
         // --- AI CLIENT (Groq) ---
-        const AI_Agent = {
-            key: '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',
+// --- AI CLIENT (Fixed to talk to your Server) ---
+const AI_Agent = {
+    key: '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',
+    
+    async chat(message) {
+        try {
+            // Talk to YOUR server proxy instead of Groq directly
+            const response = await fetch(`${API.baseUrl}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: message,
+                    key: this.key 
+                })
+            });
             
-            async chat(message) {
-                try {
-                    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.key}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            messages: [
-                                { role: "system", content: "You are SchoolBot, a helpful, encouraging, and super-fast AI assistant for students and teachers. Keep answers short and fun." },
-                                { role: "user", content: message }
-                            ],
-                            model: "llama3-8b-8192" // Super fast & free
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    if (data.error) throw new Error(data.error.message);
-                    return data.choices[0].message.content;
-                } catch (err) {
-                    console.error("AI Error", err);
-                    return "Oops! My brain froze. Check your Internet! 🥶";
-                }
+            const data = await response.json();
+            
+            // Extract the text from the response
+            if (data.choices && data.choices[0]) {
+                return data.choices[0].message.content;
             }
-        };
+            throw new Error("Invalid response format");
+        } catch (err) {
+            console.error("AI Error", err);
+            return "Oops! My brain froze. Check your server console! 🥶";
+        }
+    }
+};
 
         // Mapping old DB calls to new API calls for compatibility
         const DB = {
@@ -701,7 +788,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl slide-up" style="animation-delay: 0.2s;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl slide-up" style="animation-delay: 0.2s;" ">
                         <!-- Student Card -->
                         <div onclick="openAuth('student')" class="role-card bg-white/90 backdrop-blur cursor-pointer p-10 rounded-3xl text-slate-800 text-center transition-all duration-300 hover:scale-105 border-4 border-transparent hover:border-blue-400">
                             <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -1377,6 +1464,48 @@
                 img.src = url;
             });
         }
+        window.setEffect = function(mode) {
+    const overlay = document.getElementById('season-overlay');
+    const rainSound = document.getElementById('rain-sound');
+    if (!overlay) return;
+
+    overlay.innerHTML = '';
+    if (rainSound) rainSound.pause();
+    if (mode === 'clear') return;
+
+    for (let i = 0; i < 150; i++) {
+        const p = document.createElement('div');
+        p.className = (mode === 'winter') ? 'snow-flake' : 'rain-drop';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.animationDuration = (mode === 'winter' ? Math.random() * 3 + 4 : 0.6) + 's';
+        p.style.animationDelay = Math.random() * 5 + 's';
+        
+        if (mode === 'winter') {
+            const size = Math.random() * 5 + 2;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+        }
+        overlay.appendChild(p);
+    }
+    if (mode === 'rain' && rainSound) {
+        rainSound.play().catch(() => {});
+    }
+};
+window.toggleDarkMode = function() {
+    const body = document.body;
+    const btn = document.getElementById('dark-toggle');
+    
+    body.classList.toggle('dark-mode');
+    
+    if (body.classList.contains('dark-mode')) {
+        btn.innerText = '☀️'; // Switch to sun icon
+        console.log("Midnight Vibe Active - Rain visibility improved!");
+    } else {
+        btn.innerText = '🌙'; // Switch back to moon
+    }
+};
+    
+ 
 
         // Initialize
         State.init();
