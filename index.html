@@ -215,40 +215,68 @@ body.dark-mode .snow-flake {
 
     <script>
         // --- API CLIENT (Connects to Node.js Server) ---
-        const API = {
-            baseUrl: 'https://planned-convergence-surrounded-look.trycloudflare.com/api',
+      // 1. Hide and Show Toggle
+function toggleAiChat() {
+    const chatWin = document.getElementById('ai-chat-window');
+    chatWin.classList.toggle('hidden');
+}
 
-            // Helper to get image URLs correct
-            getImageUrl(path) {
-                if (!path) return '';
-                // Get the server root (remove /api)
-                // Ensure no double slashes if path starts with /
-                const serverRoot = this.baseUrl.replace(/\/api\/?$/, ''); 
-                const cleanPath = path.startsWith('/') ? path : '/' + path;
-                return `${serverRoot}${cleanPath}`;
-            },
+// 2. The AI Agent (Direct to Groq)
+const AI_Agent = {
+    // PASTE YOUR GROQ KEY INSIDE THE QUOTES BELOW
+    key: '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', 
+    
+    async chat(message) {
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.key}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [{ role: "user", content: message }]
+                })
+            });
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (err) {
+            console.error(err);
+            return "Connection blocked. You might need to use your server.js proxy! 🥶";
+        }
+    }
+};
 
-            async request(endpoint, options = {}) {
-                try {
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        ...(options.headers || {})
-                    };
+// 3. The Send Function (Actually Works)
+async function sendAiMessage() {
+    const input = document.getElementById('ai-input');
+    const container = document.getElementById('ai-messages');
+    const msg = input.value.trim();
+    
+    if (!msg) return;
 
-                    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-                        ...options,
-                        headers: headers
-                    });
+    // Show User Message
+    container.innerHTML += `<div style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 10px; align-self: flex-end; margin-left: 20px;">${msg}</div>`;
+    input.value = '';
+    container.scrollTop = container.scrollHeight;
 
-                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    showToast('Connection Error', 'Cannot reach server. Is it running?', 'error');
-                    throw error;
-                }
-            },
+    // Show "Thinking..."
+    const thinking = document.createElement('div');
+    thinking.style.cssText = "background: #e2e8f0; padding: 8px 12px; border-radius: 10px; align-self: flex-start; color: #64748b;";
+    thinking.innerText = "Typing...";
+    container.appendChild(thinking);
 
+    // Get Answer
+    const answer = await AI_Agent.chat(msg);
+    
+    // Replace Thinking with Answer
+    thinking.innerText = answer;
+    thinking.style.color = "#1e293b";
+    thinking.style.background = "#ffffff";
+    thinking.style.border = "1px solid #e2e8f0";
+    container.scrollTop = container.scrollHeight;
+}
             // USERS
             async register(user) {
                 return await this.request('/register', {
@@ -1534,5 +1562,6 @@ window.toggleDarkMode = function() {
 </div>
 </body>
 </html>
+
 
 
