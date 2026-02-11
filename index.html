@@ -325,41 +325,46 @@ body.dark-mode .snow-flake {
 const AI_Agent = {
     key: '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',
     
-    async chat(message) {
-    try {
-        const response = await fetch(`${API.baseUrl}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
-        });
-        
-        const data = await response.json();
-        
-        // --- THE SCANNER (Check your Console F12 to see this!) ---
-        console.log("AI DATA PACKAGE:", data);
-
-        // 1. Try "reply" (Common for custom servers)
-        if (data.reply) return data.reply;
-        
-        // 2. Try "content" (If the server sends just the message object)
-        if (data.content) return data.content;
-
-        // 3. Try "choices" (Standard Groq/OpenAI format)
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            return data.choices[0].message.content;
-        }
-
-        // 4. Try "response" 
-        if (data.response) return data.response;
-
-        // 5. If it's just a plain string
-        if (typeof data === 'string') return data;
-
-        return "I see the data, but it's in a weird format. Check the console!";
-    } catch (err) {
-        console.error("AI Error", err);
-        return "The server is being stubborn. 🥶";
+   async function sendAiMessage() {
+    const input = document.getElementById('ai-input');
+    const container = document.getElementById('ai-messages');
+    
+    if (!input || !container) {
+        console.error("Missing chat elements!");
+        return;
     }
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    // 1. Add User Bubble
+    const userDiv = document.createElement('div');
+    userDiv.style.cssText = "background: #3b82f6; color: white; padding: 8px 12px; border-radius: 10px; align-self: flex-end; margin-bottom: 5px;";
+    userDiv.textContent = message;
+    container.appendChild(userDiv);
+    
+    input.value = ''; // Clear input
+    container.scrollTop = container.scrollHeight; // Scroll to bottom
+
+    // 2. Add "Thinking..." Bubble
+    const loadingDiv = document.createElement('div');
+    loadingDiv.style.cssText = "background: #e2e8f0; color: #475569; padding: 8px 12px; border-radius: 10px; align-self: flex-start;";
+    loadingDiv.textContent = "AI is thinking...";
+    container.appendChild(loadingDiv);
+
+    try {
+        // 3. Talk to AI
+        const response = await AI_Agent.chat(message);
+        
+        // 4. Replace "Thinking..." with real response
+        loadingDiv.style.background = "#f1f5f9";
+        loadingDiv.style.color = "#1e293b";
+        loadingDiv.textContent = response;
+    } catch (err) {
+        loadingDiv.textContent = "Error: Could not reach the brain. 🥶";
+    }
+    
+    container.scrollTop = container.scrollHeight;
 }
 };
 
@@ -1533,7 +1538,7 @@ window.toggleDarkMode = function() {
      style="position: fixed; bottom: 90px; right: 20px; z-index: 1000; width: 350px; height: 450px; background: white; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;">
     <div style="background: #3b82f6; color: white; padding: 15px; font-weight: bold;">SchoolWork AI Assistant</div>
     <div id="ai-messages" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 10px; align-self: flex-start; color: #1e293b;">Hello Rayyan! How can I help you today?</div>
+        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 10px; align-self: flex-start; color: #1e293b;">Hello There! How can I help you today?</div>
     </div>
     <div style="padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px;">
         <input type="text" id="ai-input" placeholder="Ask anything..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
@@ -1542,4 +1547,5 @@ window.toggleDarkMode = function() {
 </div>
 </body>
 </html>
+
 
