@@ -325,7 +325,6 @@ body.dark-mode .snow-flake {
 const AI_Agent = {
     key: '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',
     
-   
     async chat(message) {
             try {
                 const response = await fetch(`${API.baseUrl}/chat`, {
@@ -354,6 +353,7 @@ const AI_Agent = {
                 return "Oops! My brain froze. Is the server running? 🥶";
             }
         }
+};
 
         // Mapping old DB calls to new API calls for compatibility
         const DB = {
@@ -1507,16 +1507,10 @@ window.toggleDarkMode = function() {
     } else {
         btn.innerText = '🌙'; // Switch back to moon
     }
-};
-    
- 
-
-        // Initialize
+};    // Initialize
         State.init();
 
     </script>
 </body>
 </html>
-
-
 
