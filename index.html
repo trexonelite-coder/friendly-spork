@@ -81,96 +81,9 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
-#season-overlay {
-    position: fixed !important;
-    inset: 0 !important;
-    pointer-events: none !important;
-    z-index: 999999 !important;
-    overflow: hidden !important;
-}
-
-.snow-flake {
-    position: absolute;
-    background: rgb(96, 157, 187) !important;
-    border-radius: 50%;
-    top: -20px; /* Starts above the screen */
-    box-shadow: 0 0 10px white;
-    animation: fall-snow linear infinite;
-}
-
-.rain-drop {
-    position: absolute;
-    background: rgba(255,255,255,0.6) !important;
-    width: 2px;
-    height: 60px;
-    top: -80px; /* Starts way above the screen */
-    animation: fall-rain linear infinite;
-}
-
-@keyframes fall-snow {
-    0% { transform: translateY(0) translateX(0); }
-    100% { transform: translateY(110vh) translateX(20px); }
-}
-
-@keyframes fall-rain {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(110vh); }
-}
-/* --- FULL MIDNIGHT VIBE --- */
-body.dark-mode {
-    background-color: #020617 !important; /* Deepest Navy Black */
-    color: #f8fafc !important;
-    transition: background-color 0.5s ease;
-}
-
-/* Make the whole app container blend into the dark */
-body.dark-mode #app {
-    background-color: transparent !important;
-}
-
-/* Darken all containers/cards */
-body.dark-mode .bg-white, 
-body.dark-mode .bg-slate-50, 
-body.dark-mode .shadow-sm {
-    background-color: #0f172a !important; /* Midnight Blue Card */
-    color: #f1f5f9 !important;
-    border: 1px solid #1e293b !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-}
-
-/* ACCURATE TYPING FIX: Dark boxes with White letters */
-body.dark-mode input, 
-body.dark-mode textarea,
-body.dark-mode select {
-    background-color: #1e293b !important; 
-    color: #ffffff !important; /* Crisp white text for typing */
-    border: 1px solid #334155 !important;
-}
-
-/* Glow for the Weather */
-body.dark-mode .rain-drop {
-    background: linear-gradient(to bottom, transparent, #3b82f6) !important;
-    box-shadow: 0 0 8px #3b82f6;
-    width: 1.5px;
-}
-
-body.dark-mode .snow-flake {
-    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.4);
-}
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
-    <div id="season-overlay"></div>
-<audio id="rain-sound" src="https://upload.wikimedia.org/wikipedia/commons/3/36/Rain_on_roof_loop.ogg" loop></audio>
-
-<div id="app"></div>
-
-<div id="vibe-menu" style="position: fixed; bottom: 20px; left: 20px; z-index: 999999; display: flex; gap: 10px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); padding: 10px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2);">
-    <button onclick="setEffect('winter')" style="cursor:pointer; font-size: 20px;">❄️</button>
-    <button onclick="setEffect('rain')" style="cursor:pointer; font-size: 20px;">🌧️</button>
-    <button onclick="toggleDarkMode()" id="dark-toggle" style="cursor:pointer; font-size: 20px;">🌙</button>
-    <button onclick="setEffect('clear')" style="cursor:pointer; font-size: 20px;">🧹</button>
-</div>
 
     <!-- Notification Toast -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-x-full opacity-0 bg-white border-l-4 p-4 rounded shadow-lg flex items-center gap-3 max-w-sm">
@@ -182,31 +95,7 @@ body.dark-mode .snow-flake {
     </div>
 
     <!-- AI Chat Modal -->
-    <div id="ai-modal" class="fixed bottom-20 right-5 z-40 hidden flex-col w-80 bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden slide-up">
-        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 text-white flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-robot text-xl animate-bounce"></i>
-                <h3 class="font-bold">SchoolBot AI</h3>
-            </div>
-            <button onclick="toggleAiChat()" class="hover:text-gray-200"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="ai-messages" class="h-64 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3 text-sm">
-            <div class="bg-purple-100 text-purple-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl self-start max-w-[90%]">
-                Hi! I'm fast as lightning! ⚡ Ask me anything about school!
-            </div>
-        </div>
-        <div class="p-3 bg-white border-t flex gap-2">
-            <input type="text" id="ai-input" placeholder="Ask a question..." class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none" onkeypress="handleAiKey(event)">
-            <button onclick="sendAiMessage()" class="bg-purple-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-purple-700 transition">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-    </div>
-
     <!-- AI Floating Button -->
-    <button id="ai-fab" onclick="toggleAiChat()" class="fixed bottom-5 right-5 z-40 bg-gradient-to-r from-purple-600 to-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition duration-300 hidden">
-        <i class="fas fa-robot text-2xl"></i>
-    </button>
 
     <!-- Main App Container -->
     <div id="app" class="flex-1 flex flex-col relative">
@@ -216,7 +105,8 @@ body.dark-mode .snow-flake {
     <script>
         // --- API CLIENT (Connects to Node.js Server) ---
         const API = {
-            baseUrl: 'https://planned-convergence-surrounded-look.trycloudflare.com/api',
+            // Hardcoded Cloudflare Tunnel URL
+            baseUrl: 'https://compressed-problems-picking-perception.trycloudflare.com/api', 
 
             // Helper to get image URLs correct
             getImageUrl(path) {
@@ -320,16 +210,32 @@ body.dark-mode .snow-flake {
             }
         };
 
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'},
-    body: JSON.stringify({
-        message: user_input_text_variable // Make sure this matches your variable name
-    })
-});
-
-        // Mapping old DB calls to new API calls for compatibility
+        // --- AI CLIENT (Groq) ---
+        // --- AI CLIENT (Talks to your Backend) ---
+const AI_Agent = {
+    async chat(message) {
+        try {
+            const response = await fetch(`${API.baseUrl}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || "Server Error");
+            }
+            
+            return data.text; // Now we just get the 'text' field
+        } catch (err) {
+            console.error("AI Client Error:", err);
+            return "Error: " + err.message;
+        }
+    }
+};
+    
+    // Mapping old DB calls to new API calls for compatibility
         const DB = {
             init: async () => { console.log("Connected to Real Server"); },
             getUsers: API.getUsers.bind(API),
@@ -766,7 +672,7 @@ body.dark-mode .snow-flake {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl slide-up" style="animation-delay: 0.2s;" ">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl slide-up" style="animation-delay: 0.2s;">
                         <!-- Student Card -->
                         <div onclick="openAuth('student')" class="role-card bg-white/90 backdrop-blur cursor-pointer p-10 rounded-3xl text-slate-800 text-center transition-all duration-300 hover:scale-105 border-4 border-transparent hover:border-blue-400">
                             <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -1442,71 +1348,31 @@ body.dark-mode .snow-flake {
                 img.src = url;
             });
         }
-        window.setEffect = function(mode) {
-    const overlay = document.getElementById('season-overlay');
-    const rainSound = document.getElementById('rain-sound');
-    if (!overlay) return;
-
-    overlay.innerHTML = '';
-    if (rainSound) rainSound.pause();
-    if (mode === 'clear') return;
-
-    for (let i = 0; i < 150; i++) {
-        const p = document.createElement('div');
-        p.className = (mode === 'winter') ? 'snow-flake' : 'rain-drop';
-        p.style.left = Math.random() * 100 + 'vw';
-        p.style.animationDuration = (mode === 'winter' ? Math.random() * 3 + 4 : 0.6) + 's';
-        p.style.animationDelay = Math.random() * 5 + 's';
-        
-        if (mode === 'winter') {
-            const size = Math.random() * 5 + 2;
-            p.style.width = size + 'px';
-            p.style.height = size + 'px';
-        }
-        overlay.appendChild(p);
-    }
-    if (mode === 'rain' && rainSound) {
-        rainSound.play().catch(() => {});
-    }
-};
-window.toggleDarkMode = function() {
-    const body = document.body;
-    const btn = document.getElementById('dark-toggle');
-    
-    body.classList.toggle('dark-mode');
-    
-    if (body.classList.contains('dark-mode')) {
-        btn.innerText = '☀️'; // Switch to sun icon
-        console.log("Midnight Vibe Active - Rain visibility improved!");
-    } else {
-        btn.innerText = '🌙'; // Switch back to moon
-    }
-};
-    
- 
 
         // Initialize
         State.init();
 
     </script>
-
-    <button onclick="document.getElementById('ai-chat-window').classList.toggle('hidden')" 
-        style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: #3b82f6; color: white; width: 60px; height: 60px; border-radius: 50%; font-size: 30px; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-    🤖
+    <button id="ai-fab" onclick="toggleAiChat()" class="fixed bottom-6 right-6 bg-purple-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50">
+    <i class="fas fa-robot text-2xl"></i>
 </button>
 
-<div id="ai-chat-window" class="hidden" 
-     style="position: fixed; bottom: 90px; right: 20px; z-index: 1000; width: 350px; height: 450px; background: white; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;">
-    <div style="background: #3b82f6; color: white; padding: 15px; font-weight: bold;">SchoolWork AI Assistant</div>
-    <div id="ai-messages" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 10px; align-self: flex-start; color: #1e293b;">Hello Rayyan! How can I help you today?</div>
+<div id="ai-modal" class="fixed bottom-24 right-6 w-80 md:w-96 bg-white rounded-2xl shadow-2xl flex-col z-50 hidden border border-purple-100 overflow-hidden">
+    <div class="bg-purple-600 p-4 text-white flex justify-between items-center">
+        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-magic"></i> SchoolBot AI</h3>
+        <button onclick="toggleAiChat()"><i class="fas fa-times"></i></button>
     </div>
-    <div style="padding: 10px; border-top: 1px solid #eee; display: flex; gap: 5px;">
-        <input type="text" id="ai-input" placeholder="Ask anything..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-        <button onclick="sendAiMessage()" style="background: #3b82f6; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer;">Send</button>
+    <div id="ai-messages" class="h-80 overflow-y-auto p-4 flex flex-col gap-3 text-sm bg-gray-50">
+        <div class="bg-purple-100 text-purple-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl self-start max-w-[90%]">
+            Hi Rayyan! I'm SchoolBot. How can I help you today? 📚
+        </div>
+    </div>
+    <div class="p-3 bg-white border-t flex gap-2">
+        <input type="text" id="ai-input" placeholder="Ask me anything..." class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-purple-500">
+        <button onclick="sendAiMessage()" class="bg-purple-600 text-white w-10 h-10 rounded-full flex items-center justify-center">
+            <i class="fas fa-paper-plane"></i>
+        </button>
     </div>
 </div>
 </body>
 </html>
-
-
